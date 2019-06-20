@@ -8,6 +8,7 @@ echo "Cleaning environment"
 rm -rf $CACHEFILE build/
 
 echo "Running jekyll build"
+bundle exec just-the-docs rake search:init
 JEKYLL_ENV=production bundle exec jekyll build --config _config.yml --trace
 if [ $? -ne 0 ]; then
     echo "ERROR: Bad jekyll compilation"
@@ -19,7 +20,7 @@ aws s3 sync build/ $S3BUCKET --size-only --include "*.*" --delete --profile wifi
 echo "Done uploading"
 
 # Invalidate only modified files
-changed=$(grep "upload\|deleted" $CACHEFILE | sed -e "s|.*upload.*to ${S3BUCKET}|/|" | sed -e "s|.*delete: ${S3BUCKET}|/|" | sed -e 's/index.html//' | sed -e 's/\(.*\).html/\1/')
+changed=$(grep "upload\|deleted" $CACHEFILE | sed -e "s|.*upload.*to ${S3BUCKET}|/|" | sed -e "s|.*delete: ${S3BUCKET}|/|")
 num=$(cat $CACHEFILE | wc -l)
 echo "Number of files changed: $num"
 if [ $num -eq 0 ]; then
